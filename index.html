@@ -24,12 +24,19 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      overflow-y: auto;
     }
 
     nav h2 {
       font-size: 1rem;
       margin: 0 0 0.5rem 0;
       color: #FFFFFF;
+    }
+
+    .nav-section-title {
+      margin-top: 1.2rem;
+      border-top: 1px solid #303030;
+      padding-top: 1rem;
     }
 
     nav button {
@@ -59,7 +66,7 @@
 
     .prompt-title {
       font-size: 1.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
 
     .copy-btn {
@@ -86,6 +93,57 @@
       line-height: 1.5;
       color: #FFFFFF;
     }
+
+    /* Стилі для комбінацій / кроків */
+    .workflow-step {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #303030;
+    }
+
+    .workflow-step:last-child {
+      border-bottom: none;
+    }
+
+    .step-title {
+      font-size: 1.2rem;
+      margin: 0 0 0.8rem 0;
+      color: #FFFFFF;
+    }
+
+    .prompt-text.collapsed {
+      max-height: 7.5em; /* Рівно 5 рядків тексту при line-height: 1.5 */
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prompt-text.collapsed::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2.5rem;
+      background: linear-gradient(transparent, #181818);
+      pointer-events: none;
+    }
+
+    .toggle-btn {
+      background-color: transparent;
+      color: #aaaaaa;
+      border: 1px solid #303030;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.6rem;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background-color: #303030;
+      color: #FFFFFF;
+    }
   </style>
 </head>
 <body>
@@ -96,11 +154,14 @@
     <button onclick="showPrompt('Нарізка L')">Нарізка (Довга)</button>
     <button onclick="showPrompt('YouTube SEO')">YouTube SEO</button>
     <button onclick="showPrompt('DaVinci Скрипт')">DaVinci Скрипт</button>
-    <button style="border-top: 1px solid #303030; border-radius: 0; padding-top: 10px; margin-top: 5px;" onclick="showPrompt('EDL Маркери')">EDL Маркери (DaVinci)</button>
+    <button onclick="showPrompt('EDL Маркери')">EDL Маркери (DaVinci)</button>
+
+    <h2 class="nav-section-title">Комбінації</h2>
+    <button onclick="showWorkflow('Shorts Хайлайти')">Shorts Хайлайти</button>
   </nav>
 
   <main id="content">
-    <p>Оберіть промт зліва, щоб переглянути його.</p>
+    <p>Оберіть промт або комбінацію зліва, щоб переглянути.</p>
   </main>
 
   <script>
@@ -348,27 +409,107 @@ FCM: NON-DROP FRAME
 - Якщо всередині кліпу є найсмішніший/найважливіший момент (панчлайн), додай для нього окремий звичайний маркер-крапку (|D:1, колір ResolveColorYellow) на точній секунді.`
     };
 
+    // Комбінації (ланцюжки кроків з посиланнями на промти)
+    const workflows = {
+      "Shorts Хайлайти": [
+        {
+          title: "Крок 1 — Нарізка Shorts",
+          promptKey: "Нарізка S"
+        },
+        {
+          title: "Крок 2 — DaVinci Скрипт",
+          promptKey: "DaVinci Скрипт"
+        },
+        {
+          title: "Крок 3 — YouTube SEO",
+          promptKey: "YouTube SEO"
+        }
+      ]
+    };
+
+    // Безпечне екранування символів
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Відображення одного промту
     function showPrompt(title) {
       const content = document.getElementById('content');
       if (prompts[title]) {
         const text = prompts[title];
         content.innerHTML = `
           <div class="prompt-title">${title}</div>
-          <button class="copy-btn" onclick="copyText('${title}')">Копіювати</button>
-          <div class="prompt-text" id="prompt-text">${text}</div>
+          <button class="copy-btn" onclick="copyText('${title}', this)">Копіювати</button>
+          <div class="prompt-text" id="prompt-text">${escapeHtml(text)}</div>
         `;
       } else {
         content.innerHTML = `<p>Помилка: Промт не знайдено.</p>`;
       }
     }
 
-    function copyText(title) {
+    // Відображення комбінації кроків
+    function showWorkflow(name) {
+      const content = document.getElementById('content');
+      const steps = workflows[name];
+      if (!steps) {
+        content.innerHTML = `<p>Помилка: Комбінацію не знайдено.</p>`;
+        return;
+      }
+
+      let html = `<div class="prompt-title">Комбінація: ${name}</div>`;
+
+      steps.forEach((step, index) => {
+        const promptText = prompts[step.promptKey] || '';
+        html += `
+          <div class="workflow-step">
+            <h3 class="step-title">${step.title}</h3>
+            <button class="copy-btn" onclick="copyText('${step.promptKey}', this)">Копіювати</button>
+            <div class="prompt-text collapsed" id="wf-step-${index}">${escapeHtml(promptText)}</div>
+            <button class="toggle-btn" onclick="toggleStep('wf-step-${index}', this)">Розгорнути ▼</button>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+
+      // Автоматично приховуємо кнопку розгортання, якщо текст вміщується в 5 рядків
+      steps.forEach((step, index) => {
+        const el = document.getElementById(`wf-step-${index}`);
+        const btn = el ? el.nextElementSibling : null;
+        if (el && el.scrollHeight <= el.clientHeight + 4) {
+          el.classList.remove('collapsed');
+          if (btn && btn.classList.contains('toggle-btn')) {
+            btn.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Розгортання та згортання тексту кроку
+    function toggleStep(id, btn) {
+      const el = document.getElementById(id);
+      if (el.classList.contains('collapsed')) {
+        el.classList.remove('collapsed');
+        btn.innerText = 'Згорнути ▲';
+      } else {
+        el.classList.add('collapsed');
+        btn.innerText = 'Розгорнути ▼';
+      }
+    }
+
+    // Копіювання в буфер обміну
+    function copyText(title, btnElement) {
       const text = prompts[title];
+      if (!text) return;
       navigator.clipboard.writeText(text);
-      const btn = document.querySelector('.copy-btn');
-      const originalText = btn.innerText;
-      btn.innerText = "Скопійовано!";
-      setTimeout(() => btn.innerText = originalText, 1500);
+      const btn = btnElement || document.querySelector('.copy-btn');
+      if (btn) {
+        const originalText = btn.innerText;
+        btn.innerText = "Скопійовано!";
+        setTimeout(() => btn.innerText = originalText, 1500);
+      }
     }
   </script>
 </body>
