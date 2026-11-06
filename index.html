@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Промти для ШІ</title>
+  <title>Промти для ШІ & Конвертер</title>
+  <!-- Бібліотека для високоякісного кодування в MP3 на клієнті -->
+  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -15,7 +17,7 @@
       overflow: hidden;
     }
 
-    /* Мобільна шапка (на ПК прихована) */
+    /* Мобільна шапка */
     .mobile-header {
       display: none;
     }
@@ -42,7 +44,7 @@
       display: none;
     }
 
-    /* Прокручуваний список промтів */
+    /* Прокручуваний список навігації */
     .nav-content {
       flex: 1;
       overflow-y: auto;
@@ -58,13 +60,36 @@
       color: #FFFFFF;
     }
 
+    .nav-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .back-btn {
+      background: #2a2a2a;
+      border: 1px solid #383838;
+      color: #bbb;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: #383838;
+      color: #fff;
+    }
+
     .nav-section-title {
       margin-top: 1.2rem;
       border-top: 1px solid #303030;
       padding-top: 1rem;
     }
 
-    nav button {
+    nav button.nav-item-btn {
       background-color: transparent;
       color: #FFFFFF;
       border: none;
@@ -74,42 +99,58 @@
       cursor: pointer;
       font-size: 0.95rem;
       transition: background-color 0.2s;
+      width: 100%;
     }
 
-    nav button:hover {
+    nav button.nav-item-btn:hover, nav button.nav-item-btn.active {
       background-color: #303030;
     }
 
-    /* Фіксована нижня частина навігації (не скролиться) */
+    /* Фіксована нижня частина навігації (Конвертер + Гітхаб 50/50) */
     .nav-footer {
-      padding: 0.8rem 1rem;
+      padding: 0.75rem 0.8rem;
       border-top: 1px solid #303030;
       background-color: #181818;
+      display: flex;
+      gap: 0.5rem;
+      box-sizing: border-box;
     }
 
-    .github-link-btn {
+    .footer-action-btn {
+      flex: 1;
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      width: 100%;
+      justify-content: center;
+      gap: 0.45rem;
       background-color: transparent;
       color: #FFFFFF;
       text-decoration: none;
-      padding: 0.6rem 0.8rem;
+      padding: 0.6rem 0.4rem;
+      border: 1px solid #303030;
       border-radius: 6px;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       box-sizing: border-box;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+      cursor: pointer;
+      text-align: center;
     }
 
-    .github-link-btn:hover {
+    .footer-action-btn:hover {
       background-color: #303030;
+      border-color: #444;
     }
 
-    .github-link-btn svg {
-      width: 18px;
-      height: 18px;
+    .footer-action-btn.active {
+      background-color: #2a2a2a;
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    .footer-action-btn svg {
+      width: 17px;
+      height: 17px;
       fill: currentColor;
+      flex-shrink: 0;
     }
 
     /* Основна частина */
@@ -170,7 +211,7 @@
     }
 
     .prompt-text.collapsed {
-      max-height: 7.5em; /* 5 рядків тексту при line-height: 1.5 */
+      max-height: 7.5em;
       overflow: hidden;
       position: relative;
     }
@@ -204,15 +245,229 @@
     }
 
     /* ========================================================
-       АДАПТИВНІ СТИЛІ ДЛЯ СМАРТФОНІВ ТА ПЛАНШЕТІВ (до 768px)
+       СТИЛІ ДЛЯ КОНВЕРТЕРА ТА DRAG & DROP
+       ======================================================== */
+    .converter-container {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .converter-desc {
+      color: #aaa;
+      font-size: 0.95rem;
+      margin-top: -0.8rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .drop-zone {
+      border: 2px dashed #404040;
+      border-radius: 12px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      background-color: #181818;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s, transform 0.1s;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #3b82f6;
+      background-color: #1f242d;
+    }
+
+    .drop-zone input[type="file"] {
+      display: none;
+    }
+
+    .drop-zone-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+      fill: #888;
+      transition: fill 0.2s;
+    }
+
+    .drop-zone:hover .drop-zone-icon {
+      fill: #3b82f6;
+    }
+
+    .drop-zone-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+
+    .drop-zone-sub {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .file-info-card {
+      background-color: #181818;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .file-info-details {
+      overflow: hidden;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.2rem;
+    }
+
+    .action-controls {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .primary-convert-btn {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 1.8rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .primary-convert-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .primary-convert-btn:disabled {
+      background-color: #3b4252;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #383838;
+      color: #bbb;
+      padding: 0.85rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .reset-btn:hover {
+      background-color: #303030;
+      color: #fff;
+    }
+
+    /* Прогрес бар */
+    .progress-box {
+      background: #181818;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      padding: 1.2rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .progress-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .progress-track {
+      background-color: #2a2a2a;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .progress-fill {
+      background-color: #3b82f6;
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    /* Блок успішного завершення */
+    .result-box {
+      background: #152219;
+      border: 1px solid #234d31;
+      border-radius: 8px;
+      padding: 1.2rem;
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4ade80;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .download-btn {
+      background-color: #16a34a;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 0.85rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-align: center;
+      display: inline-block;
+      transition: background-color 0.2s;
+    }
+
+    .download-btn:hover {
+      background-color: #15803d;
+    }
+
+    .preview-media {
+      max-width: 100%;
+      border-radius: 6px;
+      background: #000;
+      margin-top: 0.5rem;
+    }
+
+    /* ========================================================
+       АДАПТИВНІ СТИЛІ ДЛЯ СМАРТФОНІВ ТА ПЛАНШЕТІВ
        ======================================================== */
     @media (max-width: 768px) {
       body {
         flex-direction: column;
-        height: 100dvh; /* Коректна висота для мобільних браузерів */
+        height: 100dvh;
       }
 
-      /* Верхня плашка для мобілок */
       .mobile-header {
         display: flex;
         align-items: center;
@@ -246,7 +501,6 @@
         fill: currentColor;
       }
 
-      /* Висувна навігація */
       nav {
         position: fixed;
         top: 0;
@@ -263,7 +517,6 @@
         transform: translateX(0);
       }
 
-      /* Шапка всередині відкритого мобільного меню */
       .nav-mobile-top {
         display: flex;
         justify-content: space-between;
@@ -287,7 +540,6 @@
         padding: 0 0.5rem;
       }
 
-      /* Затемнення фону */
       .mobile-overlay {
         display: block;
         position: fixed;
@@ -307,7 +559,6 @@
         pointer-events: auto;
       }
 
-      /* Адаптація головної робочої області */
       main {
         padding: 1.2rem 1rem;
       }
@@ -322,14 +573,22 @@
         font-size: 1.3rem;
         margin-bottom: 1rem;
       }
+
+      .action-controls {
+        flex-direction: column;
+      }
+
+      .primary-convert-btn, .reset-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Верхня шапка тільки для телефонів -->
+  <!-- Верхня шапка тільки для мобілок -->
   <header class="mobile-header">
-    <div class="mobile-header-title">Промти для ШІ</div>
+    <div class="mobile-header-title" id="mobile-header-title">Пromти для ШІ</div>
     <button class="burger-btn" onclick="toggleNav()" aria-label="Відкрити меню">
       <svg viewBox="0 0 24 24">
         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
@@ -343,26 +602,51 @@
   <!-- Панель навігації -->
   <nav>
     <div class="nav-mobile-top">
-      <span>Навігація</span>
+      <span id="nav-mobile-mode-text">Навігація</span>
       <button class="close-menu-btn" onclick="closeNav()" aria-label="Закрити меню">&times;</button>
     </div>
 
-    <div class="nav-content">
+    <!-- Вміст для Промтів -->
+    <div class="nav-content" id="nav-prompts-view">
       <h2>Промти</h2>
-      <button onclick="showPrompt('Таймкоди')">Таймкоди</button>
-      <button onclick="showPrompt('Нарізка S')">Нарізка (Shorts)</button>
-      <button onclick="showPrompt('Нарізка L')">Нарізка (Довга)</button>
-      <button onclick="showPrompt('YouTube SEO')">YouTube SEO</button>
-      <button onclick="showPrompt('DaVinci Скрипт')">DaVinci Скрипт</button>
-      <button onclick="showPrompt('EDL Маркери')">EDL Маркери (DaVinci)</button>
+      <button class="nav-item-btn" onclick="showPrompt('Таймкоди')">Таймкоди</button>
+      <button class="nav-item-btn" onclick="showPrompt('Нарізка S')">Нарізка (Shorts)</button>
+      <button class="nav-item-btn" onclick="showPrompt('Нарізка L')">Нарізка (Довга)</button>
+      <button class="nav-item-btn" onclick="showPrompt('YouTube SEO')">YouTube SEO</button>
+      <button class="nav-item-btn" onclick="showPrompt('DaVinci Скрипт')">DaVinci Скрипт</button>
+      <button class="nav-item-btn" onclick="showPrompt('EDL Маркери')">EDL Маркери (DaVinci)</button>
 
       <h2 class="nav-section-title">Комбінації</h2>
-      <button onclick="showWorkflow('Shorts Хайлайти')">Shorts Хайлайти</button>
+      <button class="nav-item-btn" onclick="showWorkflow('Shorts Хайлайти')">Shorts Хайлайти</button>
     </div>
 
-    <!-- Статична кнопка внизу навігації -->
+    <!-- Вміст для Конвертера -->
+    <div class="nav-content" id="nav-converter-view" style="display: none;">
+      <div class="nav-header-row">
+        <h2>Конвертер</h2>
+        <button class="back-btn" onclick="switchNavMode('prompts')">← Промти</button>
+      </div>
+      
+      <h2>Аудіо</h2>
+      <button class="nav-item-btn" onclick="openConverter('audio-to-mp3')">Будь-що в MP3 (.mp3)</button>
+
+      <h2 class="nav-section-title">Відео</h2>
+      <button class="nav-item-btn" onclick="openConverter('video-to-mp4')">Будь-що в MP4 (.mp4)</button>
+
+      <h2 class="nav-section-title">Зображення</h2>
+      <button class="nav-item-btn" onclick="openConverter('image-to-png')">Будь-що в PNG (.png)</button>
+    </div>
+
+    <!-- Підвал навігації: Конвертер (ліворуч) + Гітхаб (праворуч) рівно 50/50 -->
     <div class="nav-footer">
-      <a class="github-link-btn" href="https://github.com/itsmksn/prompts" target="_blank" rel="noopener noreferrer">
+      <button class="footer-action-btn" id="converter-tab-btn" onclick="toggleConverterMenu()" aria-label="Конвертер">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+        </svg>
+        <span>Конвертер</span>
+      </button>
+
+      <a class="footer-action-btn" href="https://github.com/itsmksn/prompts" target="_blank" rel="noopener noreferrer" aria-label="Гітхаб">
         <svg viewBox="0 0 24 24">
           <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
         </svg>
@@ -372,10 +656,13 @@
   </nav>
 
   <main id="content">
-    <p>Оберіть промт або комбінацію зліва, щоб переглянути.</p>
+    <p>Оберіть промт, комбінацію або відкрийте конвертер знизу зліва.</p>
   </main>
 
   <script>
+    /* ========================================================
+       ПРОМТИ ТА КОМБІНАЦІЇ
+       ======================================================== */
     const prompts = {
       "Таймкоди": `Ти — менеджер YouTube-каналу. Твоє завдання — розбити транскрипцію довгого стріму на ключові макро-розділи (таймкоди) для опису відео.
 
@@ -483,7 +770,6 @@ mediaPool = project.GetMediaPool()
 
 source_clip = None
 
-# Автовибір файлу: з Media Pool або з активного таймлайну
 selected_clips = mediaPool.GetSelectedClips()
 if selected_clips:
     source_clip = selected_clips[0]
@@ -513,10 +799,8 @@ else:
         total_seconds = h * 3600 + m * 60 + s
         return int(round(total_seconds * fps_val))
 
-    # НАЗВА ЦІЛЬОВОЇ ПАПКИ (BIN): ДД.ММ + 1-2 слова теми кліпів
     folder_name = "ДД.ММ Тема кліпів"
 
-    # Створення та активація окремої папки в Media Pool
     root_folder = mediaPool.GetRootFolder()
     target_folder = None
     subfolders = root_folder.GetSubFolderList()
@@ -532,7 +816,6 @@ else:
         mediaPool.SetCurrentFolder(target_folder)
         print(f"📁 Таймлайни створюватимуться в папці (Bin): {folder_name}")
 
-    # ТУТ МАЄ БУТИ ЗГЕНЕРОВАНИЙ СПИСОК ОБРАНИХ КЛІПІВ
     clips_data = [
         # Встав сюди обрані кліпи у форматі: ("початок", "кінець", "назва")
     ]
@@ -553,7 +836,6 @@ else:
         if new_tl.GetTrackCount("video") < 2:
             new_tl.AddTrack("video")
 
-        # V1: Основний геймплей + аудіо
         mediaPool.AppendToTimeline([{
             "mediaPoolItem": source_clip,
             "startFrame": start_frame,
@@ -562,7 +844,6 @@ else:
             "recordFrame": rec_start
         }])
 
-        # V2: Верхнє віконце (тільки відео, без дублювання аудіо)
         mediaPool.AppendToTimeline([{
             "mediaPoolItem": source_clip,
             "startFrame": start_frame,
@@ -572,7 +853,6 @@ else:
             "recordFrame": rec_start
         }])
 
-        # Налаштування V1 (Zoom 0.75, Y: -243)
         v1_clips = new_tl.GetItemListInTrack("video", 1)
         if v1_clips:
             clip_v1 = v1_clips[0]
@@ -581,7 +861,6 @@ else:
             clip_v1.SetProperty("Pan", 0.0)
             clip_v1.SetProperty("Tilt", -243.0)
 
-        # Налаштування V2 (Zoom 1.3, X: -527, Y: 1421, Crop Bottom: 175)
         v2_clips = new_tl.GetItemListInTrack("video", 2)
         if v2_clips:
             clip_v2 = v2_clips[0]
@@ -628,25 +907,47 @@ FCM: NON-DROP FRAME
 - Якщо всередині кліпу є найсмішніший/найважливіший момент (панчлайн), додай для нього окремий звичайний маркер-крапку (|D:1, колір ResolveColorYellow) на точній секунді.`
     };
 
-    // Комбінації (ланцюжки кроків з посиланнями на промти)
     const workflows = {
       "Shorts Хайлайти": [
-        {
-          title: "Крок 1 — Нарізка Shorts",
-          promptKey: "Нарізка S"
-        },
-        {
-          title: "Крок 2 — DaVinci Скрипт",
-          promptKey: "DaVinci Скрипт"
-        },
-        {
-          title: "Крок 3 — YouTube SEO",
-          promptKey: "YouTube SEO"
-        }
+        { title: "Крок 1 — Нарізка Shorts", promptKey: "Нарізка S" },
+        { title: "Крок 2 — DaVinci Скрипт", promptKey: "DaVinci Скрипт" },
+        { title: "Крок 3 — YouTube SEO", promptKey: "YouTube SEO" }
       ]
     };
 
-    // Функції для мобільного меню
+    /* ========================================================
+       КОНФІГУРАЦІЯ КОНВЕРТЕРА
+       ======================================================== */
+    const converterConfigs = {
+      "audio-to-mp3": {
+        title: "Конвертер: Будь-що в MP3",
+        targetExt: "mp3",
+        targetMime: "audio/mp3",
+        desc: "Витягує аудіо з будь-яких відео (MP4, WebM, MOV тощо) або конвертує аудіофайли (WAV, OGG, M4A, FLAC) у формат MP3 із найвищою якістю 320 kbps.",
+        accept: "audio/*,video/*"
+      },
+      "video-to-mp4": {
+        title: "Конвертер: Будь-що в MP4",
+        targetExt: "mp4",
+        targetMime: "video/mp4",
+        desc: "Конвертує відео (WebM, MKV, MOV, AVI тощо) у стандартний формат MP4 безпосередньо у вашому браузері без втрати роздільної здатності.",
+        accept: "video/*"
+      },
+      "image-to-png": {
+        title: "Конвертер: Будь-що в PNG",
+        targetExt: "png",
+        targetMime: "image/png",
+        desc: "Конвертує будь-які зображення (JPG, WEBP, GIF, BMP, SVG, AVIF) у формат PNG зі 100% збереженням вихідної якості (lossless).",
+        accept: "image/*"
+      }
+    };
+
+    let currentSelectedFile = null;
+    let currentConverterType = "audio-to-mp3";
+
+    /* ========================================================
+       КЕРУВАННЯ МЕНЮ ТА НАВІГАЦІЄЮ
+       ======================================================== */
     function toggleNav() {
       document.body.classList.toggle('nav-open');
     }
@@ -655,16 +956,59 @@ FCM: NON-DROP FRAME
       document.body.classList.remove('nav-open');
     }
 
-    // Безпечне екранування символів
+    function switchNavMode(mode) {
+      const promptsView = document.getElementById('nav-prompts-view');
+      const converterView = document.getElementById('nav-converter-view');
+      const converterTabBtn = document.getElementById('converter-tab-btn');
+      const mobileHeaderTitle = document.getElementById('mobile-header-title');
+
+      if (mode === 'converter') {
+        promptsView.style.display = 'none';
+        converterView.style.display = 'flex';
+        converterTabBtn.classList.add('active');
+        if (mobileHeaderTitle) mobileHeaderTitle.innerText = 'Конвертер';
+      } else {
+        converterView.style.display = 'none';
+        promptsView.style.display = 'flex';
+        converterTabBtn.classList.remove('active');
+        if (mobileHeaderTitle) mobileHeaderTitle.innerText = 'Промти для ШІ';
+      }
+    }
+
+    function toggleConverterMenu() {
+      const converterView = document.getElementById('nav-converter-view');
+      if (converterView.style.display === 'none') {
+        switchNavMode('converter');
+      } else {
+        switchNavMode('prompts');
+      }
+    }
+
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    // Відображення одного промту
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Байт';
+      const k = 1024;
+      const sizes = ['Байт', 'КБ', 'МБ', 'ГБ'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function replaceExtension(fileName, newExt) {
+      const lastDotIndex = fileName.lastIndexOf('.');
+      if (lastDotIndex === -1) return `${fileName}.${newExt}`;
+      return `${fileName.substring(0, lastDotIndex)}.${newExt}`;
+    }
+
+    /* ========================================================
+       ВІДОБРАЖЕННЯ ПРОМТІВ ТА КОМБІНАЦІЙ
+       ======================================================== */
     function showPrompt(title) {
-      closeNav(); // Автоматично закриваємо меню на телефоні після вибору
+      closeNav();
       const content = document.getElementById('content');
       if (prompts[title]) {
         const text = prompts[title];
@@ -673,23 +1017,16 @@ FCM: NON-DROP FRAME
           <button class="copy-btn" onclick="copyText('${title}', this)">Копіювати</button>
           <div class="prompt-text" id="prompt-text">${escapeHtml(text)}</div>
         `;
-      } else {
-        content.innerHTML = `<p>Помилка: Промт не знайдено.</p>`;
       }
     }
 
-    // Відображення комбінації кроків
     function showWorkflow(name) {
-      closeNav(); // Автоматично закриваємо меню на телефоні після вибору
+      closeNav();
       const content = document.getElementById('content');
       const steps = workflows[name];
-      if (!steps) {
-        content.innerHTML = `<p>Помилка: Комбінацію не знайдено.</p>`;
-        return;
-      }
+      if (!steps) return;
 
       let html = `<div class="prompt-title">Комбінація: ${name}</div>`;
-
       steps.forEach((step, index) => {
         const promptText = prompts[step.promptKey] || '';
         html += `
@@ -704,7 +1041,6 @@ FCM: NON-DROP FRAME
 
       content.innerHTML = html;
 
-      // Автоматично приховуємо кнопку розгортання, якщо текст вміщується в 5 рядків
       steps.forEach((step, index) => {
         const el = document.getElementById(`wf-step-${index}`);
         const btn = el ? el.nextElementSibling : null;
@@ -717,7 +1053,6 @@ FCM: NON-DROP FRAME
       });
     }
 
-    // Розгортання та згортання тексту кроку
     function toggleStep(id, btn) {
       const el = document.getElementById(id);
       if (el.classList.contains('collapsed')) {
@@ -729,7 +1064,6 @@ FCM: NON-DROP FRAME
       }
     }
 
-    // Копіювання в буфер обміну
     function copyText(title, btnElement) {
       const text = prompts[title];
       if (!text) return;
@@ -739,6 +1073,396 @@ FCM: NON-DROP FRAME
         const originalText = btn.innerText;
         btn.innerText = "Скопійовано!";
         setTimeout(() => btn.innerText = originalText, 1500);
+      }
+    }
+
+    /* ========================================================
+       ЕКРАН ТА ЛОГІКА КОНВЕРТЕРА
+       ======================================================== */
+    function openConverter(type) {
+      closeNav();
+      currentConverterType = type;
+      currentSelectedFile = null;
+      const config = converterConfigs[type];
+      const content = document.getElementById('content');
+
+      content.innerHTML = `
+        <div class="converter-container">
+          <div class="prompt-title">${config.title}</div>
+          <div class="converter-desc">${config.desc}</div>
+
+          <!-- Drag and drop zone -->
+          <div class="drop-zone" id="drop-zone" onclick="triggerFileInput()">
+            <input type="file" id="file-input" accept="${config.accept}" onchange="handleFileSelect(this.files)" />
+            <svg class="drop-zone-icon" viewBox="0 0 24 24">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+            </svg>
+            <div class="drop-zone-text">Перетягніть файл сюди або клікніть для вибору</div>
+            <div class="drop-zone-sub">Файл обробляється локально на вашому комп'ютері</div>
+          </div>
+
+          <!-- Інформація про обраний файл -->
+          <div class="file-info-card" id="file-info-card" style="display: none;">
+            <div class="file-info-details">
+              <div class="file-name" id="selected-file-name">файл</div>
+              <div class="file-size" id="selected-file-size">0 МБ</div>
+            </div>
+            <div class="action-controls">
+              <button class="reset-btn" onclick="resetFileSelection()">Змінити</button>
+              <button class="primary-convert-btn" id="start-convert-btn" onclick="startConversion()">Конвертувати</button>
+            </div>
+          </div>
+
+          <!-- Прогрес конвертації -->
+          <div class="progress-box" id="progress-box">
+            <div class="progress-status">
+              <span id="progress-status-text">Обробка файлу...</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Результат конвертації -->
+          <div class="result-box" id="result-box">
+            <div class="result-header">
+              <svg style="width:20px;height:20px;fill:currentColor;" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <span>Конвертацію успішно завершено!</span>
+            </div>
+            <div id="media-preview-area"></div>
+            <a href="#" class="download-btn" id="download-btn" download="">Завантажити файл</a>
+            <button class="reset-btn" onclick="resetFileSelection()" style="align-self: flex-start;">Конвертувати інший файл</button>
+          </div>
+        </div>
+      `;
+
+      initDragEvents();
+    }
+
+    function triggerFileInput() {
+      const input = document.getElementById('file-input');
+      if (input) input.click();
+    }
+
+    function initDragEvents() {
+      const dropZone = document.getElementById('drop-zone');
+      if (!dropZone) return;
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('dragover');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+          handleFileSelect(dt.files);
+        }
+      });
+    }
+
+    function handleFileSelect(files) {
+      if (!files || files.length === 0) return;
+      currentSelectedFile = files[0];
+
+      const dropZone = document.getElementById('drop-zone');
+      const fileInfoCard = document.getElementById('file-info-card');
+      const selectedFileName = document.getElementById('selected-file-name');
+      const selectedFileSize = document.getElementById('selected-file-size');
+      const resultBox = document.getElementById('result-box');
+      const progressBox = document.getElementById('progress-box');
+
+      if (selectedFileName) selectedFileName.textContent = currentSelectedFile.name;
+      if (selectedFileSize) selectedFileSize.textContent = formatFileSize(currentSelectedFile.size);
+
+      if (dropZone) dropZone.style.display = 'none';
+      if (fileInfoCard) fileInfoCard.style.display = 'flex';
+      if (resultBox) resultBox.style.display = 'none';
+      if (progressBox) progressBox.style.display = 'none';
+    }
+
+    function resetFileSelection() {
+      currentSelectedFile = null;
+      const dropZone = document.getElementById('drop-zone');
+      const fileInfoCard = document.getElementById('file-info-card');
+      const resultBox = document.getElementById('result-box');
+      const progressBox = document.getElementById('progress-box');
+      const fileInput = document.getElementById('file-input');
+
+      if (fileInput) fileInput.value = '';
+      if (dropZone) dropZone.style.display = 'block';
+      if (fileInfoCard) fileInfoCard.style.display = 'none';
+      if (resultBox) resultBox.style.display = 'none';
+      if (progressBox) progressBox.style.display = 'none';
+    }
+
+    function updateProgress(percent, text) {
+      const progressBox = document.getElementById('progress-box');
+      const progressFill = document.getElementById('progress-fill');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressStatusText = document.getElementById('progress-status-text');
+
+      if (progressBox) progressBox.style.display = 'flex';
+      if (progressFill) progressFill.style.width = `${percent}%`;
+      if (progressPercent) progressPercent.innerText = `${percent}%`;
+      if (text && progressStatusText) progressStatusText.innerText = text;
+    }
+
+    /* ========================================================
+       АЛГОРИТМИ КОНВЕРТАЦІЇ В БРАУЗЕРІ
+       ======================================================== */
+    async function startConversion() {
+      if (!currentSelectedFile) return;
+
+      const convertBtn = document.getElementById('start-convert-btn');
+      if (convertBtn) convertBtn.disabled = true;
+
+      try {
+        let outputBlob = null;
+        const config = converterConfigs[currentConverterType];
+        const newFileName = replaceExtension(currentSelectedFile.name, config.targetExt);
+
+        if (currentConverterType === 'audio-to-mp3') {
+          outputBlob = await convertToMp3(currentSelectedFile);
+        } else if (currentConverterType === 'image-to-png') {
+          outputBlob = await convertToPng(currentSelectedFile);
+        } else if (currentConverterType === 'video-to-mp4') {
+          outputBlob = await convertToMp4(currentSelectedFile);
+        }
+
+        displayResult(outputBlob, newFileName);
+      } catch (err) {
+        console.error(err);
+        alert('Помилка під час конвертації: ' + (err.message || err));
+        const progressBox = document.getElementById('progress-box');
+        if (progressBox) progressBox.style.display = 'none';
+      } finally {
+        if (convertBtn) convertBtn.disabled = false;
+      }
+    }
+
+    // 1. Конвертація Аудіо / Відео -> MP3 (320 kbps)
+    async function convertToMp3(file) {
+      updateProgress(10, "Зчитування файлу в пам'ять...");
+      const arrayBuffer = await file.arrayBuffer();
+
+      updateProgress(30, "Декодування звукової доріжки браузером...");
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      updateProgress(50, "Кодування аудіо в MP3 (320 kbps)...");
+
+      const channels = audioBuffer.numberOfChannels;
+      const sampleRate = audioBuffer.sampleRate;
+      
+      // Ініціалізація LAME MP3 Encoder (максимальна якість 320 kbps)
+      const mp3encoder = new lamejs.Mp3Encoder(channels > 1 ? 2 : 1, sampleRate, 320);
+      const mp3Data = [];
+
+      const left = audioBuffer.getChannelData(0);
+      const right = channels > 1 ? audioBuffer.getChannelData(1) : left;
+
+      // Конвертація Float32 в 16-бітний цілочисельний PCM
+      const leftInt16 = new Int16Array(left.length);
+      const rightInt16 = channels > 1 ? new Int16Array(right.length) : null;
+
+      for (let i = 0; i < left.length; i++) {
+        let s = Math.max(-1, Math.min(1, left[i]));
+        leftInt16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        if (channels > 1) {
+          let sr = Math.max(-1, Math.min(1, right[i]));
+          rightInt16[i] = sr < 0 ? sr * 0x8000 : sr * 0x7FFF;
+        }
+      }
+
+      const sampleBlockSize = 1152;
+      for (let i = 0; i < leftInt16.length; i += sampleBlockSize) {
+        const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
+        let mp3buf;
+        if (channels > 1) {
+          const rightChunk = rightInt16.subarray(i, i + sampleBlockSize);
+          mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+        } else {
+          mp3buf = mp3encoder.encodeBuffer(leftChunk);
+        }
+
+        if (mp3buf.length > 0) {
+          mp3Data.push(mp3buf);
+        }
+
+        if (i % (sampleBlockSize * 15) === 0) {
+          const percent = 50 + Math.round((i / leftInt16.length) * 45);
+          updateProgress(percent, `Кодування MP3: ${percent}%`);
+          await new Promise(r => setTimeout(r, 0)); // Даємо браузеру оновити UI
+        }
+      }
+
+      const endBuf = mp3encoder.flush();
+      if (endBuf.length > 0) {
+        mp3Data.push(endBuf);
+      }
+
+      updateProgress(100, "Готово!");
+      return new Blob(mp3Data, { type: 'audio/mp3' });
+    }
+
+    // 2. Конвертація Зображення -> PNG (Lossless)
+    async function convertToPng(file) {
+      updateProgress(20, "Завантаження зображення...");
+      const imgBitmap = await createImageBitmap(file);
+
+      updateProgress(50, "Рендеринг у формат PNG без втрати якості...");
+      const canvas = document.createElement('canvas');
+      canvas.width = imgBitmap.width;
+      canvas.height = imgBitmap.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgBitmap, 0, 0);
+
+      updateProgress(85, "Генерація фінального файлу PNG...");
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            updateProgress(100, "Готово!");
+            resolve(blob);
+          } else {
+            reject(new Error("Не вдалося конвертувати зображення в PNG."));
+          }
+        }, 'image/png');
+      });
+    }
+
+    // 3. Конвертація Відео -> MP4
+    async function convertToMp4(file) {
+      updateProgress(15, "Ініціалізація відеопотоку...");
+
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.playsInline = true;
+        const objectUrl = URL.createObjectURL(file);
+        video.src = objectUrl;
+
+        video.onloadedmetadata = async () => {
+          try {
+            const duration = video.duration || 1;
+            let stream;
+            if (video.captureStream) {
+              stream = video.captureStream();
+            } else if (video.mozCaptureStream) {
+              stream = video.mozCaptureStream();
+            } else {
+              throw new Error("Ваш браузер не підтримує нативне захоплення потоку відео.");
+            }
+
+            // Налаштування аудіосупроводу
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaElementSource(video);
+            const dest = audioCtx.createMediaStreamDestination();
+            source.connect(dest);
+            if (dest.stream.getAudioTracks().length > 0) {
+              stream.addTrack(dest.stream.getAudioTracks()[0]);
+            }
+
+            // Вибір найкращого підтримуваного кодеку
+            let mimeType = 'video/mp4';
+            if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')) {
+              mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
+            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+              mimeType = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
+              mimeType = 'video/webm;codecs=h264';
+            }
+
+            const recorder = new MediaRecorder(stream, {
+              mimeType: mimeType,
+              videoBitsPerSecond: 8000000 // 8 Mbps для збереження високої якості
+            });
+
+            const chunks = [];
+            recorder.ondataavailable = (e) => {
+              if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+
+            recorder.onstop = () => {
+              URL.revokeObjectURL(objectUrl);
+              updateProgress(100, "Готово!");
+              resolve(new Blob(chunks, { type: 'video/mp4' }));
+            };
+
+            video.ontimeupdate = () => {
+              const p = Math.min(99, Math.round((video.currentTime / duration) * 100));
+              updateProgress(p, `Перекодування кадрів відео: ${p}%`);
+            };
+
+            video.onended = () => {
+              recorder.stop();
+            };
+
+            recorder.start(100);
+            video.playbackRate = 2.0; // Прискорена обробка в 2 рази для економії часу
+            await video.play();
+          } catch (e) {
+            URL.revokeObjectURL(objectUrl);
+            reject(e);
+          }
+        };
+
+        video.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("Не вдалося завантажити даний формат відеофайлу."));
+        };
+      });
+    }
+
+    // Відображення результату та кнопки завантаження
+    function displayResult(blob, fileName) {
+      const progressBox = document.getElementById('progress-box');
+      const resultBox = document.getElementById('result-box');
+      const downloadBtn = document.getElementById('download-btn');
+      const previewArea = document.getElementById('media-preview-area');
+      const fileInfoCard = document.getElementById('file-info-card');
+
+      if (progressBox) progressBox.style.display = 'none';
+      if (fileInfoCard) fileInfoCard.style.display = 'none';
+      if (resultBox) resultBox.style.display = 'flex';
+
+      const blobUrl = URL.createObjectURL(blob);
+      downloadBtn.href = blobUrl;
+      downloadBtn.download = fileName;
+      downloadBtn.innerText = `Завантажити ${fileName} (${formatFileSize(blob.size)})`;
+
+      previewArea.innerHTML = '';
+      if (fileName.endsWith('.mp3')) {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = blobUrl;
+        audio.className = 'preview-media';
+        previewArea.appendChild(audio);
+      } else if (fileName.endsWith('.png')) {
+        const img = document.createElement('img');
+        img.src = blobUrl;
+        img.className = 'preview-media';
+        previewArea.appendChild(img);
+      } else if (fileName.endsWith('.mp4')) {
+        const vid = document.createElement('video');
+        vid.controls = true;
+        vid.src = blobUrl;
+        vid.className = 'preview-media';
+        previewArea.appendChild(vid);
       }
     }
   </script>
