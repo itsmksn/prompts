@@ -1,0 +1,687 @@
+body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background-color: #212121;
+      color: #FFFFFF;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Мобільна шапка */
+    .mobile-header {
+      display: none;
+    }
+
+    /* Затемнення фону для мобільного меню */
+    .mobile-overlay {
+      display: none;
+    }
+
+    /* Панель навігації (ПК версія) */
+    nav {
+      width: 260px;
+      background-color: #181818;
+      box-sizing: border-box;
+      border-right: 1px solid #303030;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-mobile-top {
+      display: none;
+    }
+
+    /* Прокручуваний список навігації */
+    .nav-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-content h2 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+      color: #FFFFFF;
+    }
+
+    .nav-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .back-btn {
+      background: #2a2a2a;
+      border: 1px solid #383838;
+      color: #bbb;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: #383838;
+      color: #fff;
+    }
+
+    .nav-section-title {
+      margin-top: 1.2rem;
+      border-top: 1px solid #303030;
+      padding-top: 1rem;
+    }
+
+    .nav-divider {
+      border: none;
+      border-top: 1px solid #303030;
+      margin: 0.8rem 0;
+      width: 100%;
+    }
+
+    nav button.nav-item-btn {
+      background-color: transparent;
+      color: #FFFFFF;
+      border: none;
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
+
+    nav button.nav-item-btn:hover, nav button.nav-item-btn.active {
+      background-color: #303030;
+    }
+
+    /* Фіксована нижня частина навігації (Інструменти + Гітхаб 50/50) */
+    .nav-footer {
+      padding: 0.75rem 0.8rem;
+      border-top: 1px solid #303030;
+      background-color: #181818;
+      display: flex;
+      gap: 0.5rem;
+      box-sizing: border-box;
+    }
+
+    .footer-action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      background-color: transparent;
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 0.6rem 0.4rem;
+      border: 1px solid #303030;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .footer-action-btn:hover {
+      background-color: #303030;
+      border-color: #444;
+    }
+
+    .footer-action-btn.active {
+      background-color: #2a2a2a;
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    .footer-action-btn svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Основна частина */
+    main {
+      flex: 1;
+      padding: 2rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+      background-color: #212121;
+    }
+
+    .prompt-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .copy-btn {
+      background-color: #303030;
+      color: white;
+      border: none;
+      padding: 1rem 3rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+      margin-bottom: 1rem;
+    }
+
+    .copy-btn:hover {
+      background-color: #3a3a3a;
+    }
+
+    .prompt-text {
+      white-space: pre-wrap;
+      background-color: #181818;
+      padding: 1rem;
+      border-radius: 6px;
+      line-height: 1.5;
+      color: #FFFFFF;
+      word-break: break-word;
+    }
+
+    /* Стилі для комбінацій / кроків */
+    .workflow-step {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #303030;
+    }
+
+    .workflow-step:last-child {
+      border-bottom: none;
+    }
+
+    .step-title {
+      font-size: 1.2rem;
+      margin: 0 0 0.8rem 0;
+      color: #FFFFFF;
+    }
+
+    .prompt-text.collapsed {
+      max-height: 7.5em;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prompt-text.collapsed::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2.5rem;
+      background: linear-gradient(transparent, #181818);
+      pointer-events: none;
+    }
+
+    .toggle-btn {
+      background-color: transparent;
+      color: #aaaaaa;
+      border: 1px solid #303030;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.6rem;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background-color: #303030;
+      color: #FFFFFF;
+    }
+
+    /* ========================================================
+       СТИЛІ ДЛЯ КОНВЕРТЕРА ТА ІНСТРУМЕНТІВ
+       ======================================================== */
+    .converter-container {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .converter-desc {
+      color: #aaa;
+      font-size: 0.95rem;
+      margin-top: -0.8rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .drop-zone {
+      border: 2px dashed #404040;
+      border-radius: 12px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      background-color: #181818;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s, transform 0.1s;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #3b82f6;
+      background-color: #1f242d;
+    }
+
+    .drop-zone input[type="file"] {
+      display: none;
+    }
+
+    .drop-zone-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+      fill: #888;
+      transition: fill 0.2s;
+    }
+
+    .drop-zone:hover .drop-zone-icon {
+      fill: #3b82f6;
+    }
+
+    .drop-zone-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+
+    .drop-zone-sub {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .file-info-card {
+      background-color: #181818;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .file-info-details {
+      overflow: hidden;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.2rem;
+    }
+
+    .action-controls {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .primary-convert-btn {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 1.8rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .primary-convert-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .primary-convert-btn:disabled {
+      background-color: #3b4252;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #383838;
+      color: #bbb;
+      padding: 0.85rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .reset-btn:hover {
+      background-color: #303030;
+      color: #fff;
+    }
+
+    /* Прогрес бар */
+    .progress-box {
+      background: #181818;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      padding: 1.2rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .progress-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .progress-track {
+      background-color: #2a2a2a;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .progress-fill {
+      background-color: #3b82f6;
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    /* Блок успішного завершення */
+    .result-box {
+      background: #152219;
+      border: 1px solid #234d31;
+      border-radius: 8px;
+      padding: 1.2rem;
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4ade80;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .download-btn {
+      background-color: #16a34a;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 0.85rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-align: center;
+      display: inline-block;
+      transition: background-color 0.2s;
+    }
+
+    .download-btn:hover {
+      background-color: #15803d;
+    }
+
+    .preview-media {
+      max-width: 100%;
+      border-radius: 6px;
+      background: #000;
+      margin-top: 0.5rem;
+    }
+
+    /* ========================================================
+       СТИЛІ ДЛЯ YOUTUBE СУБТИТРІВ
+       ======================================================== */
+    .yt-input-group {
+      display: flex;
+      gap: 0.6rem;
+      width: 100%;
+    }
+
+    .yt-url-input {
+      flex: 1;
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+      background: #181818;
+      color: #fff;
+      border: 1px solid #383838;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .yt-url-input:focus {
+      border-color: #3b82f6;
+    }
+
+    .yt-options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      font-size: 0.9rem;
+      color: #ccc;
+      background: #181818;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #303030;
+    }
+
+    .yt-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .yt-checkbox-label input {
+      accent-color: #3b82f6;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .yt-status-box {
+      padding: 1rem 1.2rem;
+      border-radius: 8px;
+      background: #181818;
+      border: 1px solid #303030;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: #bbb;
+      display: none;
+    }
+
+    .yt-status-box.ok {
+      background: #152219;
+      border-color: #234d31;
+      color: #b6f0c1;
+    }
+
+    .yt-status-box.err {
+      background: #2a1616;
+      border-color: #5c2626;
+      color: #ffb4b0;
+    }
+
+    .yt-textarea {
+      width: 100%;
+      height: 320px;
+      padding: 1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      background: #181818;
+      color: #e5e5e5;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      resize: vertical;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .yt-textarea:focus {
+      border-color: #444;
+    }
+
+    .yt-result-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    /* ========================================================
+       АДАПТИВНІ СТИЛІ ДЛЯ СМАРТФОНІВ ТА ПЛАНШЕТІВ
+       ======================================================== */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        height: 100dvh;
+      }
+
+      .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background-color: #181818;
+        border-bottom: 1px solid #303030;
+        flex-shrink: 0;
+        z-index: 50;
+      }
+
+      .mobile-header-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .burger-btn {
+        background: transparent;
+        border: none;
+        color: #FFFFFF;
+        cursor: pointer;
+        padding: 0.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .burger-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        max-width: 82vw;
+        height: 100dvh;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.5);
+      }
+
+      body.nav-open nav {
+        transform: translateX(0);
+      }
+
+      .nav-mobile-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #303030;
+      }
+
+      .nav-mobile-top span {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .close-menu-btn {
+        background: transparent;
+        border: none;
+        color: #aaaaaa;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 0.5rem;
+      }
+
+      .mobile-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 90;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      body.nav-open .mobile-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      main {
+        padding: 1.2rem 1rem;
+      }
+
+      .copy-btn {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        font-size: 1rem;
+      }
+
+      .prompt-title {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+      }
+
+      .action-controls, .yt-input-group, .yt-result-actions {
+        flex-direction: column;
+      }
+
+      .primary-convert-btn, .reset-btn {
+        width: 100%;
+      }
+    }
