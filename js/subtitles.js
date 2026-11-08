@@ -418,32 +418,39 @@ let lastSubtitleSegments = []; // Зберігаємо сегменти для �
       const t0 = Date.now();
 
       try {
-        // 1. Спочатку швидка перевірка: якщо запущений локальний ytsub.py (127.0.0.1:8777)
+        // 1. Пріоритет: локальний ytsub.py сервер (127.0.0.1:8777)
         let handledByLocal = false;
         try {
+          // Даємо серверу до 45 секунд на обробку довгого стріму/відео
           const localRes = await fetchWithTimeout("http://127.0.0.1:8777/api/sub", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url: cleanUrl })
-          }, 1800);
+          }, 45000);
 
           const localData = await localRes.json();
-          if (localData && localData.ok && localData.text) {
-            handledByLocal = true;
-            lastSubtitleSegments = localData.text.split('\n').map(line => ({ start: 0, text: line }));
-            outEl.value = localData.text;
-            resultWrap.style.display = 'flex';
+          if (localData) {
+            if (!localData.ok) {
+              setYtStatus("⚠️ Помилка сервера: " + (localData.error || "Не вдалося отримати субтитри"), "err");
+              return;
+            }
+            if (localData.text) {
+              handledByLocal = true;
+              lastSubtitleSegments = localData.text.split('\n').map(line => ({ start: 0, text: line }));
+              outEl.value = localData.text;
+              resultWrap.style.display = 'flex';
 
-            const secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
-            const head = `Готово (локальний сервер): ${localData.count} реплік, мова ${localData.lang}${localData.auto ? " (авто)" : ""} · ${secs} с`;
-            const copied = await copyToClipboardSafe(localData.text);
-            setYtStatus(head + (copied ? "\n✅ Автоматично скопійовано в буфер обміну!" : "\nНатисніть «Копіювати все» нижче."), "ok");
+              const secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+              const head = `Готово (локальний сервер): ${localData.count || '—'} реплік, мова ${localData.lang || '—'}${localData.auto ? " (авто)" : ""} · ${secs} с`;
+              const copied = await copyToClipboardSafe(localData.text);
+              setYtStatus(head + (copied ? "\n\n✅ Скопійовано в буфер обміну!" : "\n\nНатисніть «📋 Копіювати все» нижче."), "ok");
+            }
           }
         } catch (localErr) {
-          // Локальний сервер не запущений — переходимо на вбудований хмарний метод
+          console.warn("Локальний сервер 127.0.0.1:8777 не відповів, перевіряємо хмарний метод...", localErr);
         }
 
-        // 2. Якщо локальний сервер вимкнений — працюємо автономно прямо через браузер (GitHub Pages)
+        // 2. Якщо локальний сервер не запущений — пробуємо резервний автономний хмарний метод
         if (!handledByLocal) {
           const cloudResult = await fetchSubtitlesCloud(videoId);
           lastSubtitleSegments = cloudResult.segments;
@@ -464,11 +471,13 @@ let lastSubtitleSegments = []; // Зберігаємо сегменти для �
         }
       } catch (err) {
         console.error(err);
-        setYtStatus(
-          "❌ " + (err.message || "Не вдалося отримати субтитри.") +
-          "\nПеревірте, чи у відео є субтитри, або запустіть локальний скрипт: python ytsub.py --serve",
-          "err"
-        );
+        const isHttps = window.location.protocol === 'https:';
+        let msg = "❌ " + (err.message || "Не вдалося отримати субтитри.");
+        msg += "\n\n💡 Переконайтеся, що запущено локальний сервер: python ytsub.py --serve";
+        if (isHttps) {
+          msg += "\n⚠️ Увага: сайт відкритий через HTTPS. Браузер може блокувати звернення до локального HTTP (Mixed Content). Для роботи відкрийте сайт локально (file:// або http://localhost:...)";
+        }
+        setYtStatus(msg, "err");
       } finally {
         if (goBtn) goBtn.disabled = false;
       }
