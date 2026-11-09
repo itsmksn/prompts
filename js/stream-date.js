@@ -37,13 +37,15 @@ function openStreamDateTool() {
 
       <!-- Панель налаштування та введення дати (з'являється після вибору файлу) -->
       <div class="sd-config-card" id="sd-config-card" style="display: none;">
-        <div class="sd-file-preview-row">
-          <img id="sd-thumb-preview" class="sd-thumb-img" alt="Прев'ю" />
-          <div class="file-info-details" style="flex: 1;">
-            <div class="file-name" id="sd-file-name">зображення.jpg</div>
-            <div class="file-size" id="sd-file-size">0 МБ · 1920x1080</div>
+        <div class="sd-preview-box">
+          <img id="sd-thumb-preview" class="sd-thumb-display" alt="Обране зображення" />
+          <div class="sd-file-meta-row">
+            <div class="file-info-details" style="min-width: 0; overflow: hidden;">
+              <div class="file-name" id="sd-file-name">зображення.jpg</div>
+              <div class="file-size" id="sd-file-size">0 МБ · 1920×1080 px</div>
+            </div>
+            <button class="reset-btn" onclick="resetSdTool()">Змінити фото</button>
           </div>
-          <button class="reset-btn" onclick="resetSdTool()">Змінити фото</button>
         </div>
 
         <div class="sd-input-section">
