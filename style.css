@@ -459,107 +459,89 @@ body {
     }
 
     /* ========================================================
-       СТИЛІ ДЛЯ YOUTUBE СУБТИТРІВ
+       СТИЛІ ДЛЯ ІНСТРУМЕНТУ ДАТИ СТРІМУ
        ======================================================== */
-    .yt-input-group {
+    .sd-config-card {
+      background-color: #181818;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      padding: 1.2rem;
       display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .sd-file-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .sd-thumb-img {
+      width: 80px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .sd-input-section {
+      display: flex;
+      flex-direction: column;
       gap: 0.6rem;
+    }
+
+    .sd-input-label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #ddd;
+    }
+
+    .sd-input-wrap {
+      display: flex;
+      gap: 0.8rem;
       width: 100%;
     }
 
-    .yt-url-input {
+    .sd-text-input {
       flex: 1;
       padding: 0.85rem 1rem;
-      font-size: 0.95rem;
-      background: #181818;
+      font-size: 1rem;
+      font-family: inherit;
+      background: #121212;
       color: #fff;
       border: 1px solid #383838;
       border-radius: 6px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .yt-url-input:focus {
+    .sd-text-input:focus {
       border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
-    .yt-options-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      font-size: 0.9rem;
-      color: #ccc;
-      background: #181818;
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      border: 1px solid #303030;
-    }
-
-    .yt-checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .yt-checkbox-label input {
-      accent-color: #3b82f6;
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-
-    .yt-status-box {
-      padding: 1rem 1.2rem;
-      border-radius: 8px;
-      background: #181818;
-      border: 1px solid #303030;
-      font-size: 0.92rem;
-      white-space: pre-wrap;
-      line-height: 1.5;
-      color: #bbb;
-      display: none;
-    }
-
-    .yt-status-box.ok {
-      background: #152219;
-      border-color: #234d31;
-      color: #b6f0c1;
-    }
-
-    .yt-status-box.err {
-      background: #2a1616;
-      border-color: #5c2626;
-      color: #ffb4b0;
-    }
-
-    .yt-textarea {
+    .sd-preview-container {
       width: 100%;
-      height: 320px;
-      padding: 1rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      background: #181818;
-      color: #e5e5e5;
-      border: 1px solid #303030;
-      border-radius: 8px;
-      resize: vertical;
-      box-sizing: border-box;
-      outline: none;
-    }
-
-    .yt-textarea:focus {
-      border-color: #444;
-    }
-
-    .yt-result-actions {
+      background: #0d0d0d;
+      border: 1px solid #262626;
+      border-radius: 6px;
+      overflow: hidden;
       display: flex;
-      gap: 0.8rem;
-      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .sd-result-preview {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+      object-fit: contain;
+      display: block;
     }
 
     /* ========================================================
@@ -677,8 +659,12 @@ body {
         margin-bottom: 1rem;
       }
 
-      .action-controls, .yt-input-group, .yt-result-actions {
+      .action-controls, .sd-input-wrap {
         flex-direction: column;
+      }
+
+      .sd-file-preview-row {
+        flex-wrap: wrap;
       }
 
       .primary-convert-btn, .reset-btn {
