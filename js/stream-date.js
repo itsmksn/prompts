@@ -303,18 +303,17 @@ async function processStreamDateImage() {
     if (progressPercent) progressPercent.innerText = "50%";
     await new Promise(r => setTimeout(r, 10));
 
-    // 2. Геометрія шрифту та капсули
-    const fontSize = Math.round(h * 0.095);
-    // Використовуємо напівжирний якісний шрифт
-    const fontStr = `800 ${fontSize}px Inter, "Segoe UI", -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif`;
+    // 2. Геометрія шрифту та капсули (узгоджено з Windows Arial Bold у Python)
+    const fontSize = Math.round(h * 0.084);
+    const fontStr = `bold ${fontSize}px Arial, "Segoe UI", system-ui, sans-serif`;
     ctx.font = fontStr;
     ctx.textBaseline = "alphabetic";
 
     const metrics = ctx.measureText(dateText);
     const textW = Math.ceil(metrics.width);
-    // Висота тексту за метриками літер
-    const ascent = metrics.actualBoundingBoxAscent || (fontSize * 0.75);
-    const descent = metrics.actualBoundingBoxDescent || (fontSize * 0.2);
+    // Точна висота шрифту за видимими межами літер
+    const ascent = metrics.actualBoundingBoxAscent || Math.round(fontSize * 0.72);
+    const descent = metrics.actualBoundingBoxDescent || Math.round(fontSize * 0.18);
     const textH = Math.ceil(ascent + descent);
 
     const paddingX = Math.round(fontSize * 0.50);
@@ -331,7 +330,7 @@ async function processStreamDateImage() {
     const bh = rectY2 - rectY1;
     const radius = bh / 2; // Капсула
 
-    if (progressText) progressText.innerText = "Рендеринг оптичної лінзи та блуму...";
+    if (progressText) progressText.innerText = "Рендеринг оптичної лінзи та шовкового блюру...";
     if (progressFill) progressFill.style.width = "75%";
     if (progressPercent) progressPercent.innerText = "75%";
     await new Promise(r => setTimeout(r, 10));
@@ -341,18 +340,18 @@ async function processStreamDateImage() {
     const shadowBlur = Math.max(4, Math.round(bh * 0.14));
 
     ctx.save();
-    ctx.shadowColor = "rgba(0, 0, 0, 0.32)";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
     ctx.shadowBlur = shadowBlur;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = shadowOffsetY;
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
     ctx.beginPath();
     ctx.roundRect(rectX1, rectY1 + shadowOffsetY, bw, bh, radius);
     ctx.fill();
     ctx.restore();
 
-    // 4. Оптична лінза: захоплення фону з легким зумом 1.07
+    // 4. Оптична лінза: захоплення фону з зумом 1.07х та шовковим блюром (як у Python)
     const zoom = 1.07;
     const cx = (rectX1 + rectX2) / 2.0;
     const cy = (rectY1 + rectY2) / 2.0;
@@ -364,9 +363,27 @@ async function processStreamDateImage() {
     const srcX2 = Math.min(w, cx + cropLensW / 2.0);
     const srcY2 = Math.min(h, cy + cropLensH / 2.0);
 
-    const subtleBlur = Math.max(2, Math.round(bh * 0.025));
+    // Захоплюємо вихідний зумований патч
+    const patchCanvas = document.createElement('canvas');
+    patchCanvas.width = bw;
+    patchCanvas.height = bh;
+    const pCtx = patchCanvas.getContext('2d');
+    pCtx.drawImage(
+      mainCanvas,
+      srcX1, srcY1, srcX2 - srcX1, srcY2 - srcY1,
+      0, 0, bw, bh
+    );
 
-    // Окреме полотно під капсулу
+    // Справжній шовковий блюр + насиченість кольорів (відповідає PIL GaussianBlur)
+    const blurPx = Math.max(5, Math.round(bh * 0.062));
+    const blurredCanvas = document.createElement('canvas');
+    blurredCanvas.width = bw;
+    blurredCanvas.height = bh;
+    const bCtx = blurredCanvas.getContext('2d');
+    bCtx.filter = `blur(${blurPx}px) saturate(120%) brightness(104%)`;
+    bCtx.drawImage(patchCanvas, 0, 0);
+
+    // Окреме полотно під капсулу скла
     const glassCanvas = document.createElement('canvas');
     glassCanvas.width = bw;
     glassCanvas.height = bh;
@@ -378,64 +395,61 @@ async function processStreamDateImage() {
     gCtx.clip();
 
     // Малюємо розмите соковите скло з зумом
-    gCtx.filter = `blur(${subtleBlur}px) brightness(104%) saturate(120%)`;
-    gCtx.drawImage(
-      rawImg,
-      cropX + srcX1,
-      cropY + srcY1,
-      srcX2 - srcX1,
-      srcY2 - srcY1,
-      0,
-      0,
-      bw,
-      bh
-    );
-    gCtx.filter = "none";
+    gCtx.drawImage(blurredCanvas, 0, 0);
 
     // Легкий напівпрозорий білий блиск тіла скла (tint 22/255 ≈ 0.086)
     gCtx.fillStyle = "rgba(255, 255, 255, 0.086)";
     gCtx.fillRect(0, 0, bw, bh);
 
-    // 5. М'який світловий блум у верхньому лівому кутку
+    // 5. М'який світловий блум ВИКЛЮЧНО у верхньому лівому кутку (як у Python, без засвічування центру!)
     const glW = bw * 0.65;
     const glH = bh * 0.55;
     const glX = bw * 0.06;
     const glY = -bh * 0.18;
 
-    const radialGrad = gCtx.createRadialGradient(
-      glX + glW / 2, glY + glH / 2, 2,
-      glX + glW / 2, glY + glH / 2, Math.max(glW, glH) / 1.4
-    );
-    radialGrad.addColorStop(0, "rgba(255, 255, 255, 0.32)");
-    radialGrad.addColorStop(0.6, "rgba(255, 255, 255, 0.12)");
-    radialGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    const glareCanvas = document.createElement('canvas');
+    glareCanvas.width = bw;
+    glareCanvas.height = bh;
+    const glCtx = glareCanvas.getContext('2d');
+    glCtx.fillStyle = "rgba(255, 255, 255, 0.28)"; // 75/255 з Python
+    glCtx.beginPath();
+    glCtx.ellipse(glX + glW / 2, glY + glH / 2, glW / 2, glH / 2, 0, 0, Math.PI * 2);
+    glCtx.fill();
 
-    gCtx.fillStyle = radialGrad;
-    gCtx.fillRect(0, 0, bw, bh);
+    const glareBlurPx = Math.max(4, Math.round(bh * 0.11));
+    const blurGlareCanvas = document.createElement('canvas');
+    blurGlareCanvas.width = bw;
+    blurGlareCanvas.height = bh;
+    const bgCtx = blurGlareCanvas.getContext('2d');
+    bgCtx.filter = `blur(${glareBlurPx}px)`;
+    bgCtx.drawImage(glareCanvas, 0, 0);
 
-    // 6. Розсіяна делікатна фаска (Diffuse Rim Glow)
+    gCtx.drawImage(blurGlareCanvas, 0, 0);
+
+    // 6. Розсіяна делікатна фаска (Diffuse Rim Glow) по краях капсули
     const rimGrad = gCtx.createLinearGradient(0, 0, 0, bh);
-    rimGrad.addColorStop(0, "rgba(255, 255, 255, 0.55)");
-    rimGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.28)");
-    rimGrad.addColorStop(1, "rgba(255, 255, 255, 0.14)");
+    rimGrad.addColorStop(0, "rgba(255, 255, 255, 0.52)");
+    rimGrad.addColorStop(0.35, "rgba(255, 255, 255, 0.20)");
+    rimGrad.addColorStop(1, "rgba(255, 255, 255, 0.03)");
 
-    gCtx.lineWidth = Math.max(1.5, bh * 0.022);
+    const rimWidth = Math.max(1.5, Math.round(bh * 0.018));
+    gCtx.lineWidth = rimWidth;
     gCtx.strokeStyle = rimGrad;
     gCtx.beginPath();
-    gCtx.roundRect(gCtx.lineWidth / 2, gCtx.lineWidth / 2, bw - gCtx.lineWidth, bh - gCtx.lineWidth, radius - gCtx.lineWidth / 2);
+    gCtx.roundRect(rimWidth / 2, rimWidth / 2, bw - rimWidth, bh - rimWidth, radius - rimWidth / 2);
     gCtx.stroke();
 
     // Накладаємо підготовлену капсулу скла на основне полотно
     ctx.drawImage(glassCanvas, rectX1, rectY1);
 
-    // 7. М'яка тінь для читабельності літер
+    // 7. М'яка тінь для читабельності літер (offset Y + 2, колір 160/255 як у Python)
     const textX = rectX1 + paddingX;
     const textY = rectY1 + paddingY + ascent;
 
     ctx.font = fontStr;
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.63)";
-    ctx.shadowBlur = Math.max(2, Math.round(fontSize * 0.05));
+    ctx.shadowBlur = Math.max(2, Math.round(fontSize * 0.04));
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 2;
     ctx.fillStyle = "rgba(0, 0, 0, 0.63)";
