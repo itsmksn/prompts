@@ -303,9 +303,20 @@ async function processStreamDateImage() {
     if (progressPercent) progressPercent.innerText = "50%";
     await new Promise(r => setTimeout(r, 10));
 
-    // 2. Геометрія шрифту та капсули (узгоджено з Windows Arial Bold у Python)
+    // 2. Геометрія шрифту та капсули (використовуємо універсальний шрифт Arimo/Arial)
     const fontSize = Math.round(h * 0.084);
-    const fontStr = `bold ${fontSize}px Arial, "Segoe UI", system-ui, sans-serif`;
+    const fontStr = `bold ${fontSize}px "Arimo", Arial, "Segoe UI", system-ui, sans-serif`;
+
+    // Гарантуємо завантаження шрифту перед розрахунками метрик та рендерингом (особливо для смартфонів)
+    if (document.fonts) {
+      try {
+        await document.fonts.load(`bold ${fontSize}px "Arimo"`);
+        await document.fonts.ready;
+      } catch (e) {
+        // Якщо офлайн або помилка мережі, використовується системний fallback
+      }
+    }
+
     ctx.font = fontStr;
     ctx.textBaseline = "alphabetic";
 
