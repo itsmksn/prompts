@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Промти для ШІ</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Веб-шрифт Arimo (100% аналог Arial для мобільних та десктопів) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@700&display=swap" rel="stylesheet">
+  <!-- Бібліотека для високоякісного кодування в MP3 на клієнті -->
+  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+</head>
+<body>
+
+  <!-- Верхня шапка тільки для мобілок -->
+  <header class="mobile-header">
+    <div class="mobile-header-title" id="mobile-header-title">Промти для ШІ</div>
+    <button class="burger-btn" onclick="toggleNav()" aria-label="Відкрити меню">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Затемнення фону при відкритому меню -->
+  <div class="mobile-overlay" onclick="closeNav()"></div>
+
+  <!-- Панель навігації -->
+  <nav>
+    <div class="nav-mobile-top">
+      <span id="nav-mobile-mode-text">Навігація</span>
+      <button class="close-menu-btn" onclick="closeNav()" aria-label="Закрити меню">&times;</button>
+    </div>
+
+    <!-- Вміст для Промтів -->
+    <div class="nav-content" id="nav-prompts-view">
+      <h2>Промти</h2>
+      <button class="nav-item-btn" onclick="showPrompt('Таймкоди')">Таймкоди</button>
+      <button class="nav-item-btn" onclick="showPrompt('Нарізка S')">Нарізка (Shorts)</button>
+      <button class="nav-item-btn" onclick="showPrompt('Нарізка L')">Нарізка (Довга)</button>
+      <button class="nav-item-btn" onclick="showPrompt('YouTube SEO')">YouTube SEO</button>
+      <button class="nav-item-btn" onclick="showPrompt('DaVinci Скрипт')">DaVinci Скрипт</button>
+      <button class="nav-item-btn" onclick="showPrompt('EDL Маркери')">EDL Маркери (DaVinci)</button>
+
+      <h2 class="nav-section-title">Комбінації</h2>
+      <button class="nav-item-btn" onclick="showWorkflow('Shorts Хайлайти')">Shorts Хайлайти</button>
+    </div>
+
+    <!-- Вміст для Інструментів -->
+    <div class="nav-content" id="nav-converter-view" style="display: none;">
+      <div class="nav-header-row">
+        <h2>Інструменти</h2>
+        <button class="back-btn" onclick="switchNavMode('prompts')">← Промти</button>
+      </div>
+      
+      <h2>Конвертери</h2>
+      <button class="nav-item-btn" onclick="openConverter('audio-to-mp3')">Аудіо в MP3 (.mp3)</button>
+      <button class="nav-item-btn" onclick="openConverter('video-to-mp4')">Відео в MP4 (.mp4)</button>
+      <button class="nav-item-btn" onclick="openConverter('image-to-png')">Зображення в PNG (.png)</button>
+
+      <hr class="nav-divider" />
+
+      <h2>Графіка</h2>
+      <button class="nav-item-btn" onclick="openStreamDateTool()">Дата стріму на прев'ю</button>
+    </div>
+
+    <!-- Підвал навігації: Інструменти (ліворуч) + Гітхаб (праворуч) рівно 50/50 -->
+    <div class="nav-footer">
+      <button class="footer-action-btn" id="converter-tab-btn" onclick="toggleConverterMenu()" aria-label="Інструменти">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+        </svg>
+        <span>Інструменти</span>
+      </button>
+
+      <a class="footer-action-btn" href="https://github.com/itsmksn/prompts" target="_blank" rel="noopener noreferrer" aria-label="Гітхаб">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
+        </svg>
+        <span>Гітхаб</span>
+      </a>
+    </div>
+  </nav>
+
+  <main id="content">
+    <p>Оберіть промт, комбінацію або відкрийте інструменти знизу зліва.</p>
+  </main>
+
+
+  <!-- Скрипти за порядком залежностей -->
+  <script src="js/prompts-data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/converter.js"></script>
+  <script src="js/stream-date.js"></script>
+</body>
+</html>
